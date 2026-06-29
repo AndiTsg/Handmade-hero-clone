@@ -1,0 +1,55 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "W:\\build\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|W:\\handmade\\code\\win32_handmade.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{00000000-0000-0000-0000-000000000000}|\u003CSolution\u003E|win32_handmade||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{480435E6-6C48-0E18-B831-F44C14E2E7CD}|win32_handmade.exe|W:\\build\\win32_handmade.exe||{B270807C-D8C6-49EB-8EBE-8E8D566637A1}|919d7fa1-9ce2-4d9f-896d-e7b38d47e562",
+      "RelativeMoniker": "D:0:0:{480435E6-6C48-0E18-B831-F44C14E2E7CD}|win32_handmade.exe|solutionrelative:win32_handmade.exe||{B270807C-D8C6-49EB-8EBE-8E8D566637A1}|919d7fa1-9ce2-4d9f-896d-e7b38d47e562"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "win32_handmade",
+              "DocumentMoniker": "W:\\build\\win32_handmade.exe",
+              "RelativeDocumentMoniker": "win32_handmade.exe",
+              "ToolTip": "W:\\build\\win32_handmade.exe",
+              "RelativeToolTip": "win32_handmade.exe",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-06-29T18:09:23.238Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "win32_handmade.cpp",
+              "DocumentMoniker": "W:\\handmade\\code\\win32_handmade.cpp",
+              "RelativeDocumentMoniker": "..\\handmade\\code\\win32_handmade.cpp",
+              "ToolTip": "W:\\handmade\\code\\win32_handmade.cpp",
+              "RelativeToolTip": "..\\handmade\\code\\win32_handmade.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-06-27T19:27:59.841Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
