@@ -1,0 +1,16 @@
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.opendb
+*.suo
+
+# Build outputs
+build/
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.lib
+
+# IntelliSense
+ipch/
