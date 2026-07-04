@@ -11,7 +11,8 @@ global_variable BOOL Running;
 
 global_variable BITMAPINFO BitmapInfo;
 global_variable void* BitMapMemory;
-
+global_variable HBITMAP BitmapHandle;
+global_variable HDC BitmapDeviceContext;
 
 internal void
 Win32ResizeDIBSection(int Width,int Height)
