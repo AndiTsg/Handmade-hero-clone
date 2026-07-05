@@ -15,7 +15,8 @@ global_variable HBITMAP BitmapHandle;
 global_variable HDC BitmapDeviceContext;
 
 internal void
-Win32ResizeDIBSection(int Width,int Height)
+Win32ResizeDIBSection(int Width,int Height)   // this is for resizing our dib section that we can draw into and 
+                                              // also to create if it hasnt been before
 {
     BitmapInfo.bmiHeader.biSize =sizeof(BitmapInfo.bmiHeader) ;
     BitmapInfo.bmiHeader.biWidth = Width;
@@ -28,7 +29,9 @@ Win32ResizeDIBSection(int Width,int Height)
     
     //todo bullet proof this
 
-    HBITMAP BitmapHandle = CreateDIBSection (DeviceContext, &BitMapInfo, DIB_RGB_COLORS, &BitMapMemory ,0,0);
+    HBITMAP BitmapHandle = CreateDIBSection    //the return value HBITMAP is the handle for our created dibsection
+                            (DeviceContext, &BitMapInfo, 
+                            DIB_RGB_COLORS, &BitMapMemory ,0,0);
 }
 
 
@@ -36,7 +39,7 @@ internal void
 Win32UpdateWindow(HDC DeviceContext, int  X, int  Y, int  Width, int  Height)() {
     int StretchDIBits(DeviceContext,  
                      X,  Y, Width, Height   //   destination rectangle
-                     X, Y, Width, Height    //   source rectangle
+                     X, Y, Width, Height    //   source rectangle, it is the same as src since we're drawing to th ewindow wc iis destination
                      const VOID * lpBits,
                      const BITMAPINFO * lpbmi,
                      DIB_RGB_COLORS, SRCCOPY);
@@ -60,8 +63,8 @@ Win32MainWindowCallback(
     {
     case WM_SIZE:
     {
-       RECT ClientRect;
-       BOOL GetClientRect(window, &ClientRect){
+       RECT ClientRect; 
+       BOOL GetClientRect(window, &ClientRect){     // this is to get drawable area of a window
            int Height = ClientRect.rcPaint.bottom - ClientRect.rcPaint.top;
            int Width = ClientRect.rcPaint.right - ClientRect.rcPaint.left;
            Win32ResizeDIBSection(Width, Height);
@@ -71,12 +74,14 @@ Win32MainWindowCallback(
 
     case WM_DESTROY:
     {
+        //this case will be treated as an error in case unexpectedly closed
         Running = false;
         OutputDebugStringA("WM_DESTROY\n");
     }break;
 
     case WM_CLOSE:
     {
+        //this case will be treated as a pop message
         Running = false;
         //DestroyWindow(Window);
         //PostQuitMessage(0);
