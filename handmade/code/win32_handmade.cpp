@@ -15,86 +15,104 @@ typedef int16_t int16;
 typedef int32_t int32;
 typedef int64_t in64;
 
-
-
 //this one means only for this file or translation unit or source file
 #define  internal static
 
 //this is global for now
 global_variable BOOL Running;
 
-global_variable BITMAPINFO BitmapInfo; //we fill out the bitmapinfo ourselves
-global_variable void* BitmapMemory;
-global_variable int BitmapHeight;
-global_variable int BitmapWidth;
-global_variable int BytesPerPixel = 4;
+struct Win32_Offscreen_Buffer {
+BITMAPINFO Info; //we fill out the bitmapinfo ourselves
+void *Memory;
+int Height;
+int Width;
+int Pitch;
+int BytesPerPixel; 
+};
+global_variable Win32_Offscreen_Buffer Buffer1;
+
+
+struct Win32_Window_Dimension {
+    int Width;
+    int Height;
+};
+
+Win32_Window_Dimension Get_Window_Dimension(HWND Window){
+
+    Win32_Window_Dimension Result;
+
+    RECT ClientRect;
+    GetClientRect(Window, &ClientRect);   // this is to get drawable area of a window
+
+    Result.Height = ClientRect.bottom - ClientRect.top;
+    Result.Width = ClientRect.right - ClientRect.left;
+    
+    return (Result);
+
+}
+
+
 
 // following are no longer needed bcoz we are using stretchdibit : global_variable HBITMAP BitmapHandle; global_variable HDC BitmapDeviceContext;
 
 
 internal void
-RenderColors(int XOffset, int YOffset) {
-    int Width = BitmapWidth;
-    int Height = BitmapHeight;
-    int Pitch = Width * BytesPerPixel;
-    uint8* Row = (uint8*)BitmapMemory;
-    for (int Y = 0; Y < BitmapHeight; Y++) {
+RenderColors(Win32_Offscreen_Buffer *Buffer, int BlueOffset, int GreenOffset) {    //when this gets called every update
+    
+    uint8* Row = (uint8*)Buffer->Memory;
+    for (int Y = 0; Y < Buffer->Height; Y++) {
         uint32* Pixel = (uint32*)Row;   //so that we get 1/4th of a pixel to write its colors
-        for (int X = 0; X < BitmapWidth; X++) {
+        for (int X = 0; X < Buffer->Width; X++) {    // iterates through each pixels of a row
             
-            uint8 Blue = X + XOffset;
-            uint8 Green = Y + YOffset;
+            uint8 Blue = X + BlueOffset;
+            uint8 Green = Y + GreenOffset;   //YOffset is getting incremented every update so creates motion
             
             *Pixel = ((Green << 8) | Blue);
             Pixel++; //u can write *pixel++ instead at the top
         }
-        Row += Pitch;
+        Row += Buffer->Pitch;
     }
 }
 
-
 internal void
-Win32ResizeDIBSection(int Width, int Height)   // this is for resizing our dib section that we can draw into and 
+Win32ResizeDIBSection(Win32_Offscreen_Buffer* Buffer,int Width, int Height)   // this is for resizing our dib section that we can draw into and 
 // also to create if it hasnt been before
 {
-    if (BitmapMemory) { //to free the memory for when we want to allocate again
-        VirtualFree(BitmapMemory, 0, MEM_RELEASE);//MEM_RELEASE frees too but if we used decommit it would leave the pages reserved(way of saying dont track but we may need the memory later)
+    if (Buffer->Memory) { //to free the memory for when we want to allocate again
+        VirtualFree(Buffer->Memory, 0, MEM_RELEASE);//MEM_RELEASE frees too but if we used decommit it would leave the pages reserved(way of saying dont track but we may need the memory later)
     }
-
-    BitmapHeight = Height;
-    BitmapWidth = Width;
-    BitmapInfo.bmiHeader.biSize = sizeof(BitmapInfo.bmiHeader);
-    BitmapInfo.bmiHeader.biWidth = BitmapWidth;
-    BitmapInfo.bmiHeader.biHeight = -BitmapHeight; //we choose top down so we make negative
-    BitmapInfo.bmiHeader.biPlanes = 1;
-    BitmapInfo.bmiHeader.biBitCount = 32;
-    BitmapInfo.bmiHeader.biCompression = BI_RGB;
+    Buffer->BytesPerPixel = 4;
+    Buffer->Height = Height;
+    Buffer->Width = Width;
+    Buffer->Info.bmiHeader.biSize = sizeof(Buffer->Info.bmiHeader);
+    Buffer->Info.bmiHeader.biWidth = Buffer->Width;
+    Buffer->Info.bmiHeader.biHeight = -Buffer->Height; //we choose top down so we make negative
+    Buffer->Info.bmiHeader.biPlanes = 1;
+    Buffer->Info.bmiHeader.biBitCount = 32;
+    Buffer->Info.bmiHeader.biCompression = BI_RGB;
     /* the following are no longer needed bc bitmap info set to static .BitmapInfo.biSizeImage = 0;  BitmapInfo.biXPelsPerMeter = 0;   BitmapInfo.biYPelsPerMeter = 0; BitmapInfo.biClrUsed = 0;BitmapInfo.biXPelsPerMeter = 0;BitmapInfo.biClrImportant=0*/
 
-    int BitmapMemorySize = (Width * Height) * BytesPerPixel;
-    BitmapMemory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
+    int BitmapMemorySize = (Width * Height) * Buffer->BytesPerPixel;
+    Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
+
+    Buffer->Pitch = Buffer->Width * Buffer->BytesPerPixel;  //pitch is in bytes i think
+
 }
 
-
 internal void
-Win32UpdateWindow(HDC DeviceContext, RECT* ClientRect, int  X, int  Y, int  Width, int  Height) {
+Win32UpdateWindow(Win32_Offscreen_Buffer Buffer,int WindowWidth, int WindowHeight, HDC DeviceContext, int  X, int  Y, int  Width, int  Height) {
 
-
-    int WindowWidth = ClientRect->right - ClientRect->left;
-    int WindowHeight = ClientRect->bottom - ClientRect->top;
-
-    StretchDIBits(DeviceContext,
+    StretchDIBits(DeviceContext,  //is used to transfer from backbuffer to window
         /*
         X,  Y, Width, Height   //   destination rectangle
         X, Y, Width, Height    //   source rectangle, it is the same as src since we're drawing to the window wc is destination
-        */
+         */
         0, 0, WindowWidth, WindowHeight,
-        0, 0,  BitmapWidth,   BitmapHeight,
-        BitmapMemory,
-        &BitmapInfo,
+        0, 0,  Buffer.Width, Buffer.Height,
+        Buffer.Memory,
+        &Buffer.Info,
         DIB_RGB_COLORS, SRCCOPY);
 }
-
 
 WNDPROC Wndproc;
 
@@ -110,12 +128,8 @@ Win32MainWindowCallback(
     {
     case WM_SIZE:
     {
-        RECT ClientRect;
-        GetClientRect(Window, &ClientRect);   // this is to get drawable area of a window
-
-        int Height = ClientRect.bottom - ClientRect.top;
-        int Width = ClientRect.right - ClientRect.left;
-        Win32ResizeDIBSection(Width, Height);
+        Win32_Window_Dimension Dimension=  Get_Window_Dimension(Window);
+        Win32ResizeDIBSection(&Buffer1, Dimension.Width, Dimension.Height);
 
         OutputDebugStringA("WM_SIZE\n");
     }break;
@@ -150,9 +164,8 @@ Win32MainWindowCallback(
         int Height = paint.rcPaint.bottom - paint.rcPaint.top;
         int Width = paint.rcPaint.right - paint.rcPaint.left;
 
-        RECT ClientRect;
-        GetClientRect(Window, &ClientRect);
-        Win32UpdateWindow(DeviceContext, &ClientRect, X, Y, Width, Height);
+        Win32_Window_Dimension Dimension = Get_Window_Dimension(Window);
+        Win32UpdateWindow(Buffer1 ,Dimension.Width , Dimension.Height, DeviceContext, X, Y, Width, Height);
         EndPaint(Window, &paint);
     }break;
 
@@ -165,6 +178,10 @@ Win32MainWindowCallback(
     return Result;
 
 }
+
+
+
+
 int CALLBACK
 WinMain(HINSTANCE Instance,
     HINSTANCE PrevInstance,
@@ -173,7 +190,7 @@ WinMain(HINSTANCE Instance,
 {
     WNDCLASS WindowClass = {};
 
-    WindowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+    WindowClass.style = CS_HREDRAW | CS_VREDRAW;
     WindowClass.lpfnWndProc = Win32MainWindowCallback;
     WindowClass.hInstance = Instance;       //can be same as winmain one
 
@@ -200,24 +217,16 @@ WinMain(HINSTANCE Instance,
                     DispatchMessage(&Message);
                 }  
 
-
-                RenderColors(XOffset, YOffset);
-
-                HDC DeviceContext = GetDC(Window );
-                RECT ClientRect;
-                GetClientRect(Window, &ClientRect);
-                int WindowWidth = ClientRect.right - ClientRect.left;
-                int WindowHeight = ClientRect.bottom - ClientRect.top;
-                Win32UpdateWindow(DeviceContext, &ClientRect,0, 0 , WindowWidth, WindowHeight);
+// after we draw to the bitmap we draw to the screen. then the XOffset++ makes each pixel position have +1 more value of the color
+// when this repeats every run of while(running) ,creates animation 
+                RenderColors(&Buffer1, XOffset, YOffset);
+                
+                HDC DeviceContext = GetDC(Window);
+                Win32_Window_Dimension Dimension = Get_Window_Dimension(Window);
+                Win32UpdateWindow(Buffer1, Dimension.Width, Dimension.Height, DeviceContext ,0, 0 , Dimension.Width, Dimension.Height);
                 ReleaseDC(Window, DeviceContext);
                 
-                
                 XOffset++;
-
-
-
-                
-
             }
         }
         else {
