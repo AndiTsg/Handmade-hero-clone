@@ -128,9 +128,7 @@ Win32MainWindowCallback(
     {
     case WM_SIZE:
     {
-        Win32_Window_Dimension Dimension=  Get_Window_Dimension(Window);
-        Win32ResizeDIBSection(&Buffer1, Dimension.Width, Dimension.Height);
-
+        
         OutputDebugStringA("WM_SIZE\n");
     }break;
 
@@ -190,6 +188,8 @@ WinMain(HINSTANCE Instance,
 {
     WNDCLASS WindowClass = {};
 
+    Win32ResizeDIBSection(&Buffer1, 1200, 720);
+
     WindowClass.style = CS_HREDRAW | CS_VREDRAW;
     WindowClass.lpfnWndProc = Win32MainWindowCallback;
     WindowClass.hInstance = Instance;       //can be same as winmain one
@@ -216,6 +216,20 @@ WinMain(HINSTANCE Instance,
                     TranslateMessage(&Message);
                     DispatchMessage(&Message);
                 }  
+
+                for (DWORD ControllerIndex = 0; 
+                    ControllerIndex < XUSER_MAX_COUNT; ControllerIndex++)
+                {
+                    XINPUT_STATE ControllerState;
+                    // Simply get the state of the controller from XInput.
+                    if (XInputGetState(ControllerIndex, &ControllerState) == ERROR_SUCCESS){
+
+                        }
+                    else{
+
+                        }
+
+                }
 
 // after we draw to the bitmap we draw to the screen. then the XOffset++ makes each pixel position have +1 more value of the color
 // when this repeats every run of while(running) ,creates animation 
