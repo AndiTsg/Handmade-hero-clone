@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <stdint.h>
+#include <xinput.h>
 
 #define  local_persist static
 #define global_variable static 
@@ -223,8 +224,26 @@ WinMain(HINSTANCE Instance,
                     XINPUT_STATE ControllerState;
                     // Simply get the state of the controller from XInput.
                     if (XInputGetState(ControllerIndex, &ControllerState) == ERROR_SUCCESS){
+                        XINPUT_GAMEPAD* PAD = &ControllerState.GamePad;
+                        bool Up DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP;
+                        bool Down DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
+                        bool Left DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
+                        bool Right DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+                        bool Start DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_START;
+                        bool Back DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_BACK;
+                        bool Leftshoulder DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT_SHOULDER;
+                        bool Rightshoulder DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPADU_RIGHT_SHOULDER;
+                        bool AButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_A;
+                        bool BButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_B;
+                        bool XButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_X;
+                        bool YButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_Y;
+                        bool PButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPADUP;
+                        bool PButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPADUP;
 
-                        }
+                        int16 StickX = Pad->sThumbLX;
+                        int16 StickX = Pad->sThumbLY;
+
+                    }
                     else{
 
                         }
