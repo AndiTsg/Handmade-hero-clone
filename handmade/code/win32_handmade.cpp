@@ -51,9 +51,32 @@ Win32_Window_Dimension Get_Window_Dimension(HWND Window){
     return (Result);
 
 }
+/* delete 
+DWORD WINAPI XInputGetState(DWORD dwUserIndex,XINPUT_STATE* pState) WIN_NOEXCEPT; //Index of the gamer associated with the device ,  // Receives the current state
+DWORD WINAPI XInputSetState ( DWORD  dwUserIndex, XINPUT_VIBRATION* pVibration) WIN_NOEXCEPT; // Index of the gamer associated with the device ,  // The vibration information to send to the controller
+global_variable x_input_set_state* XInputSetState_;
+*/
 
 
+#define X_INPUT_GET_STATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_State *pState)
+typedef  X_INPUT_GET_STATE(x_input_get_state);
+X_INPUT_GET_STATE(XInputGetStateStub) {
+    return 0;
+}
+global_variable x_input_get_state* XInputGetState_ = XInputGetStateStub;
+#define XInputSetState XInputSetState_;
 
+#define X_INPUT_SET_STATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_VIBRATION *pVibration)
+typedef  X_INPUT_SET_STATE(x_input_get_state);
+
+X_INPUT_SET_STATE(XInputGetStateStub) {
+    return 0;
+ }
+global_variable x_input_get_state* XInputSetState_ = XInputGetStateStub;
+#define XInputSetState XInputSetState_;
+
+
+                               
 // following are no longer needed bcoz we are using stretchdibit : global_variable HBITMAP BitmapHandle; global_variable HDC BitmapDeviceContext;
 
 
@@ -223,28 +246,30 @@ WinMain(HINSTANCE Instance,
                 {
                     XINPUT_STATE ControllerState;
                     // Simply get the state of the controller from XInput.
-                    if (XInputGetState(ControllerIndex, &ControllerState) == ERROR_SUCCESS){
-                        XINPUT_GAMEPAD* PAD = &ControllerState.GamePad;
+                    if (XInputGetState(ControllerIndex, &ControllerState) == ERROR_SUCCESS){     // XInputGetState is a func that gives us the -
+                                 //enter here if controller is plugged in                                                                // state of the controller we pass by index.
+                        XINPUT_GAMEPAD* PAD = &ControllerState.GamePad;                          // we pass it address of ControllerState that -
+                                                                                                 // we initialized so that the function fills it for us
                         bool Up DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP;
                         bool Down DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
                         bool Left DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
                         bool Right DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
-                        bool Start DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_START;
-                        bool Back DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_BACK;
-                        bool Leftshoulder DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT_SHOULDER;
-                        bool Rightshoulder DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPADU_RIGHT_SHOULDER;
-                        bool AButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_A;
-                        bool BButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_B;
-                        bool XButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_X;
-                        bool YButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_Y;
-                        bool PButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPADUP;
-                        bool PButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPADUP;
+                        bool Start DPadUp = Pad->wButtons & XINPUT_GAMEPAD_START;
+                        bool Back DPadUp = Pad->wButtons & XINPUT_GAMEPAD_BACK;
+                        bool LeftShoulder DPadUp = Pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
+                        bool RightShoulder DPadUp = Pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
+                        bool AButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_A;
+                        bool BButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_B;
+                        bool XButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_X;
+                        bool YButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_Y;
+                        
 
                         int16 StickX = Pad->sThumbLX;
                         int16 StickX = Pad->sThumbLY;
 
                     }
                     else{
+                        //controller not plugged in
 
                         }
 
