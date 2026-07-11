@@ -9,12 +9,12 @@
 typedef uint8_t uint8;
 typedef uint16_t uint16;
 typedef uint32_t uint32;
-typedef uint64_t uin64;
+typedef uint64_t uint64;
 
 typedef int8_t int8;
 typedef int16_t int16;
 typedef int32_t int32;
-typedef int64_t in64;
+typedef int64_t int64;
 
 //this one means only for this file or translation unit or source file
 #define  internal static
@@ -38,6 +38,7 @@ struct Win32_Window_Dimension {
     int Height;
 };
 
+internal
 Win32_Window_Dimension Get_Window_Dimension(HWND Window){
 
     Win32_Window_Dimension Result;
@@ -51,34 +52,33 @@ Win32_Window_Dimension Get_Window_Dimension(HWND Window){
     return (Result);
 
 }
-/* delete 
-DWORD WINAPI XInputGetState(DWORD dwUserIndex,XINPUT_STATE* pState) WIN_NOEXCEPT; //Index of the gamer associated with the device ,  // Receives the current state
-DWORD WINAPI XInputSetState ( DWORD  dwUserIndex, XINPUT_VIBRATION* pVibration) WIN_NOEXCEPT; // Index of the gamer associated with the device ,  // The vibration information to send to the controller
-global_variable x_input_set_state* XInputSetState_;
-*/
 
-
-#define X_INPUT_GET_STATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_State *pState)
-typedef  X_INPUT_GET_STATE(x_input_get_state);
-X_INPUT_GET_STATE(XInputGetStateStub) {
+#define X_INPUT_GET_STATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE *pState) //ig makes easier to make multiple func w same signature
+typedef  X_INPUT_GET_STATE(x_input_get_state); //create a type wc is a function (so that we can create pointer to it)
+X_INPUT_GET_STATE(XInputGetStateStub) {   //default func
     return 0;
 }
-global_variable x_input_get_state* XInputGetState_ = XInputGetStateStub;
-#define XInputSetState XInputSetState_;
+global_variable x_input_get_state* XInputGetState_ = XInputGetStateStub; //initializing
+#define XInputGetState XInputGetState_ // XInputGetState is no longer the one in the import library
+
 
 #define X_INPUT_SET_STATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_VIBRATION *pVibration)
-typedef  X_INPUT_SET_STATE(x_input_get_state);
-
-X_INPUT_SET_STATE(XInputGetStateStub) {
+typedef  X_INPUT_SET_STATE(x_input_set_state);
+X_INPUT_SET_STATE(XInputSetStateStub) {
     return 0;
  }
-global_variable x_input_get_state* XInputSetState_ = XInputGetStateStub;
-#define XInputSetState XInputSetState_;
-
-
-                               
+global_variable x_input_set_state *XInputSetState_ = XInputSetStateStub;
+#define XInputSetState XInputSetState_
 // following are no longer needed bcoz we are using stretchdibit : global_variable HBITMAP BitmapHandle; global_variable HDC BitmapDeviceContext;
 
+internal void 
+Win32LoadXInput(void) {
+    HMODULE XInputLibrary = LoadLibrary("xinput1_3.dll");
+    if (XInputLibrary){
+        XInputGetState = (x_input_get_state *)GetProcAddress(XInputLibrary, "XInputGetState");
+        XInputSetState = (x_input_set_state *)GetProcAddress(XInputLibrary, "XInputSetState");
+    }
+}
 
 internal void
 RenderColors(Win32_Offscreen_Buffer *Buffer, int BlueOffset, int GreenOffset) {    //when this gets called every update
@@ -227,10 +227,12 @@ WinMain(HINSTANCE Instance,
         HWND Window =
             CreateWindowEx(0, WindowClass.lpszClassName, "Handmade Hero", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, Instance, 0);
         if (Window) {
+            Win32LoadXInput();
             Running = true;
            int XOffset = 0;
            int YOffset = 0;
             while (Running) { 
+
                 
                 MSG Message;
                 while (PeekMessageA(&Message, 0, 0, 0, PM_REMOVE)) {   //while instead of if because we dont wanna repaint for every message. and we need to clear the queue
@@ -248,24 +250,24 @@ WinMain(HINSTANCE Instance,
                     // Simply get the state of the controller from XInput.
                     if (XInputGetState(ControllerIndex, &ControllerState) == ERROR_SUCCESS){     // XInputGetState is a func that gives us the -
                                  //enter here if controller is plugged in                                                                // state of the controller we pass by index.
-                        XINPUT_GAMEPAD* PAD = &ControllerState.GamePad;                          // we pass it address of ControllerState that -
+                        XINPUT_GAMEPAD* Pad = &ControllerState.Gamepad;                          // we pass it address of ControllerState that -
                                                                                                  // we initialized so that the function fills it for us
-                        bool Up DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP;
-                        bool Down DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
-                        bool Left DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
-                        bool Right DPadUp = Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
-                        bool Start DPadUp = Pad->wButtons & XINPUT_GAMEPAD_START;
-                        bool Back DPadUp = Pad->wButtons & XINPUT_GAMEPAD_BACK;
-                        bool LeftShoulder DPadUp = Pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
-                        bool RightShoulder DPadUp = Pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
-                        bool AButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_A;
-                        bool BButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_B;
-                        bool XButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_X;
-                        bool YButton DPadUp = Pad->wButtons & XINPUT_GAMEPAD_Y;
+                        bool Up = ( Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP);
+                        bool Down  = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
+                        bool Left  = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
+                        bool Right = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
+                        bool Start = (Pad->wButtons & XINPUT_GAMEPAD_START);
+                        bool Back  = (Pad->wButtons & XINPUT_GAMEPAD_BACK);
+                        bool LeftShoulder  = (Pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);
+                        bool RightShoulder  = (Pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
+                        bool AButton = (Pad->wButtons & XINPUT_GAMEPAD_A);
+                        bool BButton = (Pad->wButtons & XINPUT_GAMEPAD_B);
+                        bool XButton = (Pad->wButtons & XINPUT_GAMEPAD_X);
+                        bool YButton = (Pad->wButtons & XINPUT_GAMEPAD_Y);
                         
 
                         int16 StickX = Pad->sThumbLX;
-                        int16 StickX = Pad->sThumbLY;
+                        int16 StickY = Pad->sThumbLY;
 
                     }
                     else{
@@ -274,6 +276,10 @@ WinMain(HINSTANCE Instance,
                         }
 
                 }
+                XINPUT_VIBRATION Vibration;
+                Vibration.wLeftMotorSpeed = 60000;
+                Vibration.wRightMotorSpeed = 60000;
+                XInputSetState(0, &Vibration);
 
 // after we draw to the bitmap we draw to the screen. then the XOffset++ makes each pixel position have +1 more value of the color
 // when this repeats every run of while(running) ,creates animation 
